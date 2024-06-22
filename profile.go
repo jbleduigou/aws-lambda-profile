@@ -137,6 +137,10 @@ func Start(options ...func(*Profile) func(pkg *pkgprofile.Profile)) interface {
 		profile.region = "us-east-1"
 	}
 
+	if profile.localPath == "" {
+		profile.localPath = "/tmp/cpu.pprof"
+	}
+
 	profile.p = pkgprofile.Start(pkgOptions...)
 	return &profile
 }
