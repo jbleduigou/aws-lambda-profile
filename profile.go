@@ -66,13 +66,13 @@ func AWSRegion(region string) func(*Profile) func(pkg *pkgprofile.Profile) {
 }
 
 // Stop stops the profile and flushes any unwritten data.
-func (p *Profile) Stop() {
+func (p *Profile) Stop(ctx context.Context) {
 	p.p.Stop()
-	p.uploadToS3()
+	p.uploadToS3(ctx)
 }
 
 // uploadToS3 uploads the profile to S3 if the bucket name is provided.
-func (p *Profile) uploadToS3() {
+func (p *Profile) uploadToS3(ctx context.Context) {
 	if p.bucket == "" {
 		log.Fatalf("bucket name is not provided, skipping upload to S3")
 		return
@@ -89,14 +89,14 @@ func (p *Profile) uploadToS3() {
 		}
 	}(file)
 
-	s3Path := p.generateS3Path()
+	s3Path := p.generateS3Path(ctx)
 
-	sdkConfig, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(p.region))
+	sdkConfig, err := config.LoadDefaultConfig(ctx, config.WithRegion(p.region))
 	if err != nil {
 		log.Fatalf("unable to load SDK config, %v", err)
 	}
 	s3Client := s3.NewFromConfig(sdkConfig)
-	_, err = s3Client.PutObject(context.Background(), &s3.PutObjectInput{
+	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(p.bucket),
 		Key:    aws.String(s3Path),
 		Body:   file,
@@ -107,9 +107,9 @@ func (p *Profile) uploadToS3() {
 }
 
 // generateS3Path generates the S3 path based on the lambda context and the current local path.
-func (p *Profile) generateS3Path() string {
+func (p *Profile) generateS3Path(ctx context.Context) string {
 	// retrieve lambda context
-	lc, found := lambdacontext.FromContext(context.Background())
+	lc, found := lambdacontext.FromContext(ctx)
 	if !found {
 		return strings.Replace(p.localPath, "/tmp/", "unknown/", 1)
 	}
@@ -120,7 +120,7 @@ func (p *Profile) generateS3Path() string {
 // The caller should call the Stop method on the value returned
 // to cleanly stop profiling.
 func Start(options ...func(*Profile) func(pkg *pkgprofile.Profile)) interface {
-	Stop()
+	Stop(context.Context)
 } {
 
 	var pkgOptions []func(*pkgprofile.Profile)
