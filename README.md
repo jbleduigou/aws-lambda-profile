@@ -31,8 +31,8 @@ To enable profiling in your application, you need to add one line in your main f
 ```go
 import profile "github.com/jbleduigou/aws-lambda-profile"
 
-func main() {
-    defer profile.Start(profile.S3Bucket("pprof-bucket"), profile.AWSRegion("eu-west-1")).Stop()
+func main(ctx context.Context) {
+    defer profile.Start(profile.S3Bucket("pprof-bucket"), profile.AWSRegion("eu-west-1")).Stop(ctx)
 }
 ```
 
@@ -44,7 +44,7 @@ You can still explicitly enable it by using the `CPUProfile` option:
 ```go
 import profile "github.com/jbleduigou/aws-lambda-profile"
 
-defer profile.Start(profile.CPUProfile, profile.S3Bucket("pprof-bucket"), profile.AWSRegion("eu-west-1")).Stop()
+defer profile.Start(profile.CPUProfile, profile.S3Bucket("pprof-bucket"), profile.AWSRegion("eu-west-1")).Stop(ctx)
 ```
 
 ### Memory profiling
@@ -54,7 +54,7 @@ To enable memory profiling, you can use the `MemProfile` option:
 ```go
 import profile "github.com/jbleduigou/aws-lambda-profile"
 
-defer profile.Start(profile.MemProfile, profile.S3Bucket("pprof-bucket"), profile.AWSRegion("eu-west-1")).Stop()
+defer profile.Start(profile.MemProfile, profile.S3Bucket("pprof-bucket"), profile.AWSRegion("eu-west-1")).Stop(ctx)
 ```
 
 
